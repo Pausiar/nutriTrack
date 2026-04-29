@@ -4,9 +4,11 @@
 /.idea/
 .DS_Store
 /build/
+/app/build/
 /captures/
 .externalNativeBuild/
 .cxx
+.dist/
 
 # Secrets
 **/local.properties
