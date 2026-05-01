@@ -10,8 +10,13 @@ import java.util.concurrent.TimeUnit
 
 object NvidiaApiClient {
     private val authInterceptor = Interceptor { chain ->
+        val apiKey = BuildConfig.NVIDIA_API_KEY.trim()
+        if (apiKey.isEmpty()) {
+            throw IllegalStateException("NVIDIA_API_KEY vacia. Configura NVIDIA_API_KEY en local.properties o en la variable de entorno NVIDIA_API_KEY y recompila.")
+        }
+
         val req = chain.request().newBuilder()
-            .addHeader("Authorization", "Bearer ${BuildConfig.NVIDIA_API_KEY}")
+            .addHeader("Authorization", "Bearer $apiKey")
             .addHeader("Accept", "application/json")
             .build()
         chain.proceed(req)
