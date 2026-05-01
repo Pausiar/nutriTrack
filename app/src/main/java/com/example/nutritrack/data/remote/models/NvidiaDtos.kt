@@ -1,12 +1,12 @@
 package com.example.nutritrack.data.remote.models
 
-import com.squareup.moshi.Json
+import com.google.gson.annotations.SerializedName
 
 data class NvidiaChatRequest(
     val model: String,
     val messages: List<NvidiaMessage>,
     val temperature: Double = 0.2,
-    @Json(name = "max_tokens") val maxTokens: Int = 800
+    @SerializedName("max_tokens") val maxTokens: Int = 800
 )
 
 data class NvidiaMessage(
@@ -17,7 +17,7 @@ data class NvidiaMessage(
 data class VisionContentPart(
     val type: String,
     val text: String? = null,
-    @Json(name = "image_url") val imageUrl: ImageUrlPart? = null
+    @SerializedName("image_url") val imageUrl: ImageUrlPart? = null
 )
 
 data class ImageUrlPart(

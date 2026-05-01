@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.nutritrack.databinding.FragmentDailyHistoryBinding
 import com.example.nutritrack.ui.history.HistoryActivity
@@ -15,7 +14,9 @@ class DailyHistoryFragment : Fragment() {
     private val binding get() = _binding!!
     private val adapter = FoodEntryAdapter()
 
-    private val viewModel by activityViewModels<com.example.nutritrack.ui.history.HistoryViewModel>()
+    private val viewModel by lazy(LazyThreadSafetyMode.NONE) {
+        (requireActivity() as HistoryActivity).viewModel
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,

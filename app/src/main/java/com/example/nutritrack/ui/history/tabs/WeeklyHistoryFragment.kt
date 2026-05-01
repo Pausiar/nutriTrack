@@ -6,8 +6,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import com.example.nutritrack.databinding.FragmentWeeklyHistoryBinding
+import com.example.nutritrack.ui.history.HistoryActivity
 import com.example.nutritrack.ui.history.HistoryViewModel
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
@@ -17,7 +17,9 @@ class WeeklyHistoryFragment : Fragment() {
     private var _binding: FragmentWeeklyHistoryBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel by activityViewModels<HistoryViewModel>()
+    private val viewModel: HistoryViewModel by lazy(LazyThreadSafetyMode.NONE) {
+        (requireActivity() as HistoryActivity).viewModel
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,

@@ -5,7 +5,7 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
+import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object NvidiaApiClient {
@@ -32,7 +32,7 @@ object NvidiaApiClient {
     private val retrofit: Retrofit = Retrofit.Builder()
         .baseUrl(BuildConfig.NVIDIA_BASE_URL)
         .client(httpClient)
-        .addConverterFactory(MoshiConverterFactory.create())
+        .addConverterFactory(GsonConverterFactory.create())
         .build()
 
     val service: NvidiaApiService = retrofit.create(NvidiaApiService::class.java)
