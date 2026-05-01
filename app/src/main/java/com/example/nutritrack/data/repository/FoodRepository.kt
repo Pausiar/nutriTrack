@@ -10,9 +10,11 @@ import com.example.nutritrack.data.remote.NvidiaApiClient
 import com.example.nutritrack.data.remote.models.ImageUrlPart
 import com.example.nutritrack.data.remote.models.NutritionAnalysis
 import com.example.nutritrack.data.remote.models.NvidiaChatRequest
+import com.example.nutritrack.data.remote.models.NvidiaChatResponse
 import com.example.nutritrack.data.remote.models.NvidiaMessage
 import com.example.nutritrack.data.remote.models.VisionContentPart
 import org.json.JSONObject
+import java.io.IOException
 import retrofit2.HttpException
 
 class FoodRepository(
@@ -72,7 +74,7 @@ class FoodRepository(
                 )
             )
         )
-        val response = NvidiaApiClient.service.chatCompletions(request)
+        val response = requestChatWithFriendlyErrors(request)
         val content = response.choices?.firstOrNull()?.message?.content
             ?: throw IllegalStateException("Respuesta vacia del modelo")
         return parseNutrition(content)
@@ -110,7 +112,7 @@ class FoodRepository(
             )
 
             try {
-                val response = NvidiaApiClient.service.chatCompletions(request)
+                val response = requestChatWithFriendlyErrors(request)
                 val content = response.choices?.firstOrNull()?.message?.content
                     ?: throw IllegalStateException("Respuesta vacia del modelo")
                 return parseNutrition(content)
@@ -130,6 +132,28 @@ class FoodRepository(
             "No se pudo analizar la imagen con los modelos disponibles: ${lastError?.message ?: "error desconocido"}",
             lastError
         )
+    }
+
+    private suspend fun requestChatWithFriendlyErrors(request: NvidiaChatRequest): NvidiaChatResponse {
+        return try {
+            NvidiaApiClient.service.chatCompletions(request)
+        } catch (e: HttpException) {
+            val status = e.code()
+            val body = runCatching { e.response()?.errorBody()?.string().orEmpty() }.getOrDefault("")
+            val bodySnippet = body.take(300)
+            val message = when (status) {
+                401, 403 -> "NVIDIA API rechazó la clave (HTTP $status). Revisa NVIDIA_API_KEY y permisos de la cuenta."
+                404 -> "Endpoint o modelo no encontrado (HTTP 404). Revisa NVIDIA_BASE_URL y el modelo configurado."
+                410 -> "El modelo NVIDIA está retirado (HTTP 410). Cambia a un modelo vigente."
+                429 -> "Límite de peticiones alcanzado (HTTP 429). Espera un momento y vuelve a intentarlo."
+                in 500..599 -> "NVIDIA API no disponible temporalmente (HTTP $status). Es un fallo del servicio remoto. Inténtalo más tarde."
+                else -> "Error HTTP $status al llamar NVIDIA API."
+            }
+            val details = if (bodySnippet.isNotBlank()) "\nDetalle: $bodySnippet" else ""
+            throw IllegalStateException(message + details, e)
+        } catch (e: IOException) {
+            throw IllegalStateException("Error de red al contactar NVIDIA API. Revisa tu conexión a Internet.", e)
+        }
     }
 
     private fun parseNutrition(content: String): NutritionAnalysis {
