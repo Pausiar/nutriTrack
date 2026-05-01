@@ -31,7 +31,7 @@ android {
         buildConfigField("String", "NVIDIA_API_KEY", "\"$nvidiaApiKey\"")
         buildConfigField("String", "NVIDIA_BASE_URL", "\"https://integrate.api.nvidia.com/v1/\"")
         buildConfigField("String", "NVIDIA_TEXT_MODEL", "\"meta/llama-3.3-70b-instruct\"")
-        buildConfigField("String", "NVIDIA_VISION_MODEL", "\"meta/llama-4-scout-17b-16e-instruct\"")
+        buildConfigField("String", "NVIDIA_VISION_MODEL", "\"meta/llama-4-maverick-17b-128e-instruct\"")
     }
 
     buildTypes {

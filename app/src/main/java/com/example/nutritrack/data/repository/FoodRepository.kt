@@ -13,6 +13,7 @@ import com.example.nutritrack.data.remote.models.NvidiaChatRequest
 import com.example.nutritrack.data.remote.models.NvidiaMessage
 import com.example.nutritrack.data.remote.models.VisionContentPart
 import org.json.JSONObject
+import retrofit2.HttpException
 
 class FoodRepository(
     private val foodEntryDao: FoodEntryDao,
@@ -81,27 +82,54 @@ class FoodRepository(
         val visionPrompt = optionalText?.takeIf { it.isNotBlank() }
             ?: "Analiza la imagen del alimento y estima sus valores nutricionales"
 
-        val request = NvidiaChatRequest(
-            model = BuildConfig.NVIDIA_VISION_MODEL,
-            messages = listOf(
-                NvidiaMessage(role = "system", content = jsonSystemPrompt),
-                NvidiaMessage(
-                    role = "user",
-                    content = listOf(
-                        VisionContentPart(type = "text", text = visionPrompt),
-                        VisionContentPart(
-                            type = "image_url",
-                            imageUrl = ImageUrlPart(url = "data:image/jpeg;base64,$imageBase64")
+        val candidateModels = listOf(
+            BuildConfig.NVIDIA_VISION_MODEL,
+            "meta/llama-4-maverick-17b-128e-instruct",
+            "meta/llama-3.2-90b-vision-instruct",
+            "meta/llama-3.2-11b-vision-instruct"
+        ).distinct()
+
+        var lastError: Exception? = null
+
+        for (model in candidateModels) {
+            val request = NvidiaChatRequest(
+                model = model,
+                messages = listOf(
+                    NvidiaMessage(role = "system", content = jsonSystemPrompt),
+                    NvidiaMessage(
+                        role = "user",
+                        content = listOf(
+                            VisionContentPart(type = "text", text = visionPrompt),
+                            VisionContentPart(
+                                type = "image_url",
+                                imageUrl = ImageUrlPart(url = "data:image/jpeg;base64,$imageBase64")
+                            )
                         )
                     )
                 )
             )
-        )
 
-        val response = NvidiaApiClient.service.chatCompletions(request)
-        val content = response.choices?.firstOrNull()?.message?.content
-            ?: throw IllegalStateException("Respuesta vacia del modelo")
-        return parseNutrition(content)
+            try {
+                val response = NvidiaApiClient.service.chatCompletions(request)
+                val content = response.choices?.firstOrNull()?.message?.content
+                    ?: throw IllegalStateException("Respuesta vacia del modelo")
+                return parseNutrition(content)
+            } catch (e: HttpException) {
+                // 410 means the model is deprecated/removed: try next model.
+                if (e.code() == 410) {
+                    lastError = e
+                    continue
+                }
+                throw e
+            } catch (e: Exception) {
+                lastError = e
+            }
+        }
+
+        throw IllegalStateException(
+            "No se pudo analizar la imagen con los modelos disponibles: ${lastError?.message ?: "error desconocido"}",
+            lastError
+        )
     }
 
     private fun parseNutrition(content: String): NutritionAnalysis {
