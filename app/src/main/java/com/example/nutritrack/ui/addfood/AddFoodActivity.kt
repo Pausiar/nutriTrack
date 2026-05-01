@@ -11,7 +11,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.bumptech.glide.Glide
 import com.example.nutritrack.NutriTrackApp
 import com.example.nutritrack.databinding.ActivityAddFoodBinding
 import com.example.nutritrack.utils.ImageUtils
@@ -27,9 +26,14 @@ class AddFoodActivity : AppCompatActivity() {
 
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
-            selectedImageUri = uri
-            capturedBitmap = null
-            Glide.with(this).load(uri).into(binding.ivFoodPreview)
+            try {
+                val bmp = ImageUtils.uriToBitmap(contentResolver, uri)
+                selectedImageUri = null
+                capturedBitmap = bmp
+                binding.ivFoodPreview.setImageBitmap(bmp)
+            } catch (e: Exception) {
+                Toast.makeText(this, "Error al cargar imagen: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
