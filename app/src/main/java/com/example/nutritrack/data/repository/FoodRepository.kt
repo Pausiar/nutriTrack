@@ -86,9 +86,11 @@ class FoodRepository(
 
         val candidateModels = listOf(
             BuildConfig.NVIDIA_VISION_MODEL,
-            "meta/llama-4-maverick-17b-128e-instruct",
             "meta/llama-3.2-90b-vision-instruct",
-            "meta/llama-3.2-11b-vision-instruct"
+            "meta/llama-3.2-11b-vision-instruct",
+            "microsoft/phi-4-multimodal-instruct",
+            "microsoft/phi-3-vision-128k-instruct",
+            "nvidia/nemotron-nano-12b-v2-vl"
         ).distinct()
 
         var lastError: Exception? = null
