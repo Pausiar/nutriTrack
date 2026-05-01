@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -32,7 +33,7 @@ class AddFoodActivity : AppCompatActivity() {
                 capturedBitmap = bmp
                 binding.ivFoodPreview.setImageBitmap(bmp)
             } catch (e: Exception) {
-                Toast.makeText(this, "Error al cargar imagen: ${e.message}", Toast.LENGTH_SHORT).show()
+                    showError("Error al cargar imagen: ${e.message}")
             }
         }
     }
@@ -41,7 +42,7 @@ class AddFoodActivity : AppCompatActivity() {
         if (granted) {
             pickImageLauncher.launch("image/*")
         } else {
-            Toast.makeText(this, "Permiso denegado", Toast.LENGTH_SHORT).show()
+                showError("Permiso denegado")
         }
     }
 
@@ -49,7 +50,7 @@ class AddFoodActivity : AppCompatActivity() {
         if (granted) {
             takePictureLauncher.launch(null)
         } else {
-            Toast.makeText(this, "Permiso de camara denegado", Toast.LENGTH_SHORT).show()
+                showError("Permiso de cámara denegado")
         }
     }
 
@@ -86,7 +87,7 @@ class AddFoodActivity : AppCompatActivity() {
                     val base64 = ImageUtils.bitmapToBase64(bitmap)
                     viewModel.analyzeAndSaveImage(description, base64, null)
                 } catch (e: Exception) {
-                    Toast.makeText(this, e.message ?: "Error con la foto", Toast.LENGTH_SHORT).show()
+                        showError(e.message ?: "Error con la foto")
                 }
             } else {
                 try {
@@ -94,7 +95,7 @@ class AddFoodActivity : AppCompatActivity() {
                     val base64 = ImageUtils.bitmapToBase64(selectedBitmap)
                     viewModel.analyzeAndSaveImage(description, base64, imageUri.toString())
                 } catch (e: Exception) {
-                    Toast.makeText(this, e.message ?: "Error con la imagen", Toast.LENGTH_SHORT).show()
+                        showError(e.message ?: "Error con la imagen")
                 }
             }
         }
@@ -106,7 +107,7 @@ class AddFoodActivity : AppCompatActivity() {
 
         viewModel.error.observe(this) { error ->
             if (!error.isNullOrBlank()) {
-                Toast.makeText(this, error, Toast.LENGTH_LONG).show()
+                    showError(error)
             }
         }
 
@@ -117,6 +118,11 @@ class AddFoodActivity : AppCompatActivity() {
             }
         }
     }
+
+        private fun showError(message: String) {
+            binding.tvError.text = message
+            binding.tvError.visibility = View.VISIBLE
+        }
 
     private fun requestGalleryPermissionAndPick() {
         val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

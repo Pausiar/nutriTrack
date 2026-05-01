@@ -63,5 +63,15 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:text="Analizar y guardar" />
+            <TextView
+                android:id="@+id/tvError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="#FFEBEE"
+                android:padding="12dp"
+                android:textColor="#B71C1C"
+                android:textSize="14sp"
+                android:visibility="gone" />
     </LinearLayout>
 </ScrollView>
